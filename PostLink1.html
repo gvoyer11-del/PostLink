@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostLink — Éditeur & Optimiseur LinkedIn Professionnel</title>
+    <style>
+        /* Design System Premium - Style SaaS Minimaliste */
+        :root {
+            --bg-main: #090d16;
+            --bg-card: #131926;
+            --bg-input: #1e2638;
+            --border-color: #2a354f;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --brand: #38bdf8;
+            --brand-hover: #0ea5e9;
+            --linkedin: #0a66c2;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Barre de navigation supérieure fixe */
+        .navbar {
+            background-color: rgba(13, 19, 38, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            height: 70px;
+        }
+
+        .nav-logo {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .nav-logo span {
+            color: var(--brand);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            height: 100%;
+            align-items: center;
+        }
+
+        .nav-item {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: var(--text-main);
+        }
+
+        .nav-item.active {
+            border-bottom-color: var(--brand);
+        }
+
+        .nav-cta {
+            background-color: var(--brand);
+            color: #090d16;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .nav-cta:hover {
+            background-color: var(--brand-hover);
+        }
+
+        /* Structure des Écrans (SPA) */
+        .screen {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding-top: 70px; /* Espace pour la navbar fixe */
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* =========================================
+           PAGE D'ACCUEIL / DÉCOUVRIR (LANDING PAGE)
+           ========================================= */
+        .hero-section {
+            text-align: center;
+            padding: 80px 20px 60px 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero-tag {
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--brand);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 20px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        .hero-section h1 {
+            font-size: 48px;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            line-height: 1.15;
+            margin-bottom: 20px;
+        }
+
+        .hero-section p {
+            font-size: 18px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 35px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto 80px auto;
+            padding: 0 40px;
+            width: 100%;
+        }
+
+        .feature-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            border-radius: 10px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(56, 189, 248, 0.4);
+        }
+
+        .feature-icon {
+            font-size: 24px;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .feature-card h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* =========================================
+           WORKSPACE INTERFACE (L'OUTIL PRO)
+           ========================================= */
+        .workspace-container {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 40px;
+            gap: 30px;
+            flex: 1;
+        }
+
+        .workspace-left {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .workspace-tabs {
+            display: flex;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .w-tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .w-tab-btn.active {
+            background: var(--bg-input);
+            color: var(--text-main);
+        }
+
+        .w-tab-content {
+            display: none;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 25px;
+            border-radius: 8px;
+        }
+
+        .w-tab-content.active {
+            display: block;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--brand);
+        }
+
+        .editor-wrapper {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .editor-toolbar {
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .btn-action {
+            background: var(--brand);
+            color: #090d16;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-action:hover {
+            background-color: var(--brand-hover);
+        }
+
+        /* Workspace Droite (Simulateur LinkedIn) */
+        .workspace-right {
+            flex: 0.8;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sim-toggle-row {
+            display: flex;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .sim-toggle-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+
+        .sim-toggle-btn.active {
+            background: var(--linkedin);
+            color: white;
+        }
+
+        .linkedin-frame {
+            background: white;
+            color: #191919;
+            border-radius: 8px;
+            padding: 16px;
+            width: 100%;
+            transition: max-width 0.3s ease;
+            margin: 0 auto;
+        }
+
+        .linkedin-frame.mobile-mode {
+            max-width: 360px;
+        }
+
+        .lk-avatar {
+            width: 48px;
+            height: 48px;
+            background: #cbd5e1;
+            border-radius: 50%;
+        }
+
+        .lk-text-output {
+            font-size: 14px;
+            line-height: 1.42;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #191919;
+        }
+
+        .lk-see-more {
+            color: #666666;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Badges Pro */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+        .status-green { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-yellow { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .status-red { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        /* =========================================
+           PAGE MENTIONS LÉGALES
+           ========================================= */
+        .legal-page-container {
+            max-width: 800px;
+            margin: 60px auto;
+            padding: 0 20px;
+            line-height: 1.7;
+        }
+
+        .legal-page-container h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: var(--text-main);
+        }
+
+        .legal-page-container p.subtitle {
+            color: var(--text-muted);
+            margin-bottom: 40px;
+        }
+
+        .legal-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .legal-section h3 {
+            color: var(--brand);
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .legal-section p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* FOOTER GLOBAL */
+        footer {
+            background-color: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            padding: 30px 40px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: auto;
+        }
+
+        footer a {
+            color: var(--brand);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 900px) {
+            .workspace-container { flex-direction: column; }
+            .navbar { padding: 0 20px; }
+            .nav-links { gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-logo" onclick="switchScreen('screen-home', 'nav-home')">
+            PostLink<span>.</span>
+        </div>
+        <div class="nav-links">
+            <span id="nav-home" class="nav-item active" onclick="switchScreen('screen-home', 'nav-home')">Découvrir</span>
+            <span id="nav-app" class="nav-item" onclick="switchScreen('screen-app', 'nav-app')">Éditeur IA</span>
+            <span id="nav-legal" class="nav-item" onclick="switchScreen('screen-legal', 'nav-legal')">Mentions Légales</span>
+        </div>
+        <button class="nav-cta" onclick="switchScreen('screen-app', 'nav-app')">Lancer l'Éditeur</button>
+    </nav>
+
+    <div id="screen-home" class="screen active">
+        <div class="hero-section">
+            <div class="hero-tag">⚡ Version Professionnelle v2.4</div>
+            <h1>Rédigez des publications LinkedIn qui retiennent l'attention.</h1>
+            <p>Ne laissez plus l'algorithme masquer la valeur de vos idées. PostLink simule parfaitement la coupure mobile et desktop pour maximiser votre taux de clic.</p>
+            <button class="btn-action" style="padding: 14px 28px; font-size: 15px;" onclick="switchScreen('screen-app', 'nav-app')">Accéder à l'espace de travail gratuit</button>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">👁️</div>
+                <h3>Simulateur de Crochet</h3>
+                <p>Visualisez précisément l'emplacement de la coupure automatique "... voir plus" à 140 caractères sur mobile et 210 caractères sur ordinateur.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h3>Copywriting IA Avancé</h3>
+                <p>Alimenté par les puces ultra-rapides de Groq pour générer des structures narratives de posts (AIDA, PAS) adaptées à votre domaine B2B.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔤</div>
+                <h3>Formatage Unicode Clean</h3>
+                <p>Convertissez vos mots clés importants en caractères gras ou italiques mathématiques lisibles nativement sur tous les écrans LinkedIn.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-app" class="screen">
+        <div class="workspace-container">
+            
+            <div class="workspace-left">
+                <div class="workspace-tabs">
+                    <button id="wt-ia" class="w-tab-btn active" onclick="switchWorkspaceTab('tab-ia-panel', this)">✨ Assistant IA</button>
+                    <button id="wt-opti" class="w-tab-btn" onclick="switchWorkspaceTab('tab-opti-panel', this)">📈 Paramètres & Signaux</button>
+                    <button id="wt-drafts" class="w-tab-btn" onclick="switchWorkspaceTab('tab-drafts-panel', this)">📁 Historique des Brouillons</button>
+                </div>
+
+                <div id="tab-ia-panel" class="w-tab-content active">
+                    <label>Quel message ou idée souhaitez-vous partager ?</label>
+                    <input type="text" id="aiTopic" placeholder="Ex: Mon retour d'expérience sur notre levée de fonds ou un défi technique résolu...">
+                    <label>Angle & Structure Narrative</label>
+                    <select id="aiTone">
+                        <option value="story">Storytelling (Défi vécus, leçons tirées et vulnérabilité)</option>
+                        <option value="expert">Expert B2B (Analyse chiffrée, framework et méthodologie pure)</option>
+                    </select>
+                    <button class="btn-action" style="width: 100%; margin-top: 10px;" onclick="genererPostIA()">Générer la structure via l'IA</button>
+                </div>
+
+                <div id="tab-opti-panel" class="w-tab-content">
+                    <label>Générateur Contextuel de Hashtags</label>
+                    <div id="hashtagContainer" style="margin-bottom: 20px; min-height: 35px; color: var(--text-muted); font-size: 13px;">
+                        Rédigez du texte dans l'éditeur pour charger des suggestions adaptées à l'algorithme B2B.
+                    </div>
+                    <label>Planification de l'Heure de Diffusion</label>
+                    <input type="datetime-local" id="postingHour" onchange="analyserFenetrePublication()">
+                    <div id="publishScoreContainer"></div>
+                </div>
+
+                <div id="tab-drafts-panel" class="w-tab-content">
+                    <div id="draftsCollection" style="font-size: 13px; color: var(--text-muted); display: flex; flex-direction: column; gap: 10px;">
+                        Aucune sauvegarde locale détectée pour le moment.
+                    </div>
+                </div>
+
+                <div class="editor-wrapper">
+                    <div class="editor-toolbar">
+                        <button class="tool-btn" onclick="transformerTexteSelectionne('bold')"><b>Gras</b></button>
+                        <button class="tool-btn" onclick="transformerTexteSelectionne('italic')"><i>Italique</i></button>
+                        <button class="tool-btn" onclick="insererElementRapide('🚀')">🚀</button>
+                        <button class="tool-btn" onclick="insererElementRapide('💡')">💡</button>
+                        <button class="tool-btn" onclick="insererElementRapide('👇')">👇</button>
+                        <button style="margin-left: auto; background: transparent; border: none; color: var(--brand); font-weight: 600; cursor: pointer;" onclick="executerSauvegardeManuelle()">Enregistrer le brouillon</button>
+                    </div>
+                    <textarea id="postEditor" placeholder="Rédigez le contenu brut ou peaufinez la structure de votre publication ici..." oninput="recalculerStatistiquesApplication()"></textarea>
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
+                        <span id="labelCharCount">0 caractères / 3000 max</span>
+                        <span id="labelReadTime">Temps de lecture estimé : ~0s</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="workspace-right">
+                <div class="sim-toggle-row">
+                    <button id="s-desk" class="sim-toggle-btn active" onclick="configurerSupportSimulateur('desktop')">💻 Version Desktop</button>
+                    <button id="s-mob" class="sim-toggle-btn" onclick="configurerSupportSimulateur('mobile')">📱 Version Mobile</button>
+                </div>
+
+                <div class="linkedin-frame" id="lkFrame">
+                    <div class="sim-header">
+                        <div class="lk-avatar"></div>
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-weight: 600; font-size: 14px; color: #191919;">Votre Profil LinkedIn</span>
+                            <span style="font-size: 12px; color: #666666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px;">Expert de l'industrie • Décideur B2B</span>
+                            <span style="font-size: 11px; color: #666666; margin-top: 1px;">Maintenant • 🌐</span>
+                        </div>
+                    </div>
+                    <div class="lk-text-output" id="lkTextOutput">Le rendu exact de votre publication apparaîtra ici de manière dynamique au cours de votre saisie...</div>
+                </div>
+
+                <button class="btn-action" style="background: var(--linkedin); color: white;" onclick="copierPressePapierGlobal()">📋 Copier la version formatée pour LinkedIn</button>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="screen-legal" class="screen">
+        <div class="legal-page-container">
+            <h1>Sécurité & Mentions Légales</h1>
+            <p class="subtitle">Dernière mise à jour de conformité effectuée en juillet 2026.</p>
+            
+            <div class="legal-card">
+                <div class="legal-section">
+                    <h3>1. Édition et Propriété Intellectuelle</h3>
+                    <p>Cette application web est la propriété exclusive de <strong>Gabriel VOYER</strong>. L'intégralité du code source applicatif front-end, les feuilles de style structurelles et l'agencement graphique constituent une œuvre de l'esprit protégée par les lois en vigueur sur la propriété intellectuelle.</p>
+                </div>
+
+                <div class="legal-section">
+                    <h3>2. Traitement Secrétisé des Données (RGPD)</h3>
+                    <p>PostLink applique une politique stricte de confidentialité *Zero-Server-Storage*. **Aucune des données textuelles saisies dans l'éditeur n'est stockée à distance ou revendue.** Les données sauvegardées dans l'historique restent exclusivement cloisonnées dans la mémoire locale de votre navigateur internet (mécanisme LocalStorage). L'appel au modèle d'intelligence artificielle est éphémère et chiffré.</p>
+                </div>
+
+                <div class="legal-section">
+                    <h3>3. Architecture Cloud & API</h3>
+                    <p>Les requêtes d'analyse cognitive et de pré-rédaction sont acheminées via une passerelle d'API découplée et sécurisée. Le moteur sous-jacent est orchestré sur des serveurs sécurisés pour empêcher toute fuite ou exposition de vos clés d'accès.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        PostLink © 2026. Conçu et développé par <strong>Gabriel VOYER</strong> pour les professionnels de l'écosystème B2B.
+        <br><br>
+        <a onclick="switchScreen('screen-legal', 'nav-legal')">Mentions Légales & RGPD</a> | 
+        <a onclick="switchScreen('screen-home', 'nav-home')">Consulter la Landing Page</a>
+    </footer>
+
+    <script>
+        /* ================= ROUTING APPLICATIF (SPA) ================= */
+        function switchScreen(screenId, navId) {
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(screenId).classList.add('active');
+            if(navId) document.getElementById(navId).classList.add('active');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if(screenId === 'screen-app') chargerHistoriqueBrouillonsExistants();
+        }
+
+        /* ================= WORKSPACE GESTIONNAIRE D'ONGLETS ================= */
+        function switchWorkspaceTab(tabId, btnElement) {
+            document.querySelectorAll('.w-tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.w-tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        /* ================= MOTEUR DU SIMULATEUR LINKEDIN ================= */
+        let supportSimulateurActuel = 'desktop';
+
+        function configurerSupportSimulateur(mode) {
+            supportSimulateurActuel = mode;
+            const frame = document.getElementById('lkFrame');
+            document.querySelectorAll('.sim-toggle-btn').forEach(el => el.classList.remove('active'));
+
+            if (mode === 'mobile') {
+                frame.classList.add('mobile-mode');
+                document.getElementById('s-mob').classList.add('active');
+            } else {
+                frame.classList.remove('mobile-mode');
+                document.getElementById('s-desk').classList.add('active');
+            }
+            recalculerStatistiquesApplication();
+        }
+
+        function recalculerStatistiquesApplication() {
+            const rawText = document.getElementById('postEditor').value;
+            const output = document.getElementById('lkTextOutput');
+            
+            document.getElementById('labelCharCount').innerText = `${rawText.length} caractères / 3000 max`;
+            
+            const countWords = rawText.split(/\s+/).filter(w => w.length > 0).length;
+            const estimateTime = Math.round((countWords / 200) * 60);
+            document.getElementById('labelReadTime').innerText = `Temps de lecture estimé : ~${estimateTime}s`;
+
+            if(!rawText.trim()) {
+                output.innerHTML = "Le rendu exact de votre publication apparaîtra ici de manière dynamique...";
+                return;
+            }
+
+            const limitCoupure = (supportSimulateurActuel === 'mobile') ? 140 : 210;
+            if(rawText.length > limitCoupure) {
+                output.innerHTML = echapperCaracteresSpeciauxHTML(rawText.substring(0, limitCoupure)) + '<span class="lk-see-more">... voir plus</span>';
+            } else {
+                output.innerHTML = echapperCaracteresSpeciauxHTML(rawText);
+            }
+
+            analyserEtSuggérerHashtags(rawText);
+        }
+
+        function echapperCaracteresSpeciauxHTML(str) {
+            return str.replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char] || char));
+        }
+
+        /* ================= FORMATAGE UNICODE AVANCÉ ================= */
+        function transformerTexteSelectionne(style) {
+            const alphabets = {
+                bold: {'a':'𝗮','b':'𝗯','c':'𝗰','d':'𝗱','e':'𝗲','f':'𝗳','g':'𝗴','h':'𝗵','i':'𝗶','j':'𝗷','k':'𝗸','l':'𝗹','m':'𝗺','n':'𝗻','o':'𝗼','p':'𝗽','q':'𝗾','r':'𝗿','s':'𝘀','t':'𝘁','u':'𝘂','v':'𝘃','w':'𝘄','x':'𝘅','y':'𝘆','z':'𝘇'},
+                italic: {'a':'𝘢','b':'𝘣','c':'𝘤','d':'𝘥','e':'𝘦','f':'𝘧','g':'𝘨','h':'𝘩','i':'𝘪','j':'𝘫','k':'𝘬','l':'𝘭','m':'𝘮','n':'𝘯','o':'𝘰','p':'𝘱','q':'𝘲','r':'𝘳','s':'𝘴','t':'𝘵','u':'𝘶','v':'𝘷','w':'𝘸','x':'𝘹','y':'𝘺','z':'𝘻'}
+            };
+            
+            const textEditor = document.getElementById('postEditor');
+            const debut = textEditor.selectionStart;
+            const fin = textEditor.selectionEnd;
+            
+            if (debut === fin) return alert("Sélectionnez préalablement un segment de texte dans l'éditeur.");
+
+            let segmentModifie = "";
+            const selectionString = textEditor.value.substring(debut, fin);
+            for (let c of selectionString) {
+                segmentModifie += alphabets[style][c.toLowerCase()] || c;
+            }
+            
+            textEditor.value = textEditor.value.substring(0, debut) + segmentModifie + textEditor.value.substring(fin);
+            recalculerStatistiquesApplication();
+        }
+
+        function insererElementRapide(val) {
+            const area = document.getElementById('postEditor');
+            area.value += val;
+            recalculerStatistiquesApplication();
+        }
+
+        /* ================= ANALYTIQUES ET SIGNALS ALGORITHMIQUES ================= */
+        function analyserFenetrePublication() {
+            const currentVal = document.getElementById('postingHour').value;
+            const resultBox = document.getElementById('publishScoreContainer');
+            if(!currentVal) return;
+
+            const timeInstance = new Date(currentVal);
+            const heure = timeInstance.getHours();
+            const jourSemaine = timeInstance.getDay(); 
+
+            if (jourSemaine === 0 || jourSemaine === 6) {
+                resultBox.innerHTML = '<span class="status-badge status-red">⚠️ Week-end : Portée organique historiquement faible sur LinkedIn</span>';
+            } else if ((heure >= 7 && heure <= 9) || (heure >= 17 && heure <= 18)) {
+                resultBox.innerHTML = '<span class="status-badge status-green">⚡ Créneau Premium : Taux d\'engagement maximal identifié</span>';
+            } else {
+                resultBox.innerHTML = '<span class="status-badge status-yellow">⚖️ Fenêtre Neutre : Performance algorithmique standard attendue</span>';
+            }
+        }
+
+        function analyserEtSuggérerHashtags(contenuTexte) {
+            const container = document.getElementById('hashtagContainer');
+            if (contenuTexte.length < 15) { container.innerHTML = "En attente de matière textuelle pour analyse..."; return; }
+            
+            let finalTags = ['#B2BMarketing', '#Productivite'];
+            const standardise = contenuTexte.toLowerCase();
+            
+            if(standardise.includes('freelance') || standardise.includes('indépendant')) finalTags.push('#Entrepreneuriat', '#FreelanceLife');
+            if(standardise.includes('ia') || standardise.includes('technologie') || standardise.includes('code')) finalTags.push('#TechInnovation', '#FuturOfWork');
+
+            container.innerHTML = finalTags.map(t => `<span class="status-badge status-green" style="margin-right:6px; cursor:pointer;" onclick="insererElementRapide(' ${t}')">${t} +</span>`).join('');
+        }
+
+        /* ================= PERSISTANCE EN MACHINE LOCALE (LOCALSTORAGE) ================= */
+        function executerSauvegardeManuelle() {
+            const codeInterne = document.getElementById('postEditor').value;
+            if(!codeInterne.trim()) return alert("Traitement refusé : La zone de texte est vide.");
+            
+            let backupStack = JSON.parse(localStorage.getItem('pl_pro_backups')) || [];
+            backupStack.unshift({ horodatage: new Date().toLocaleString('fr-FR'), content: codeInterne });
+            
+            if(backupStack.length > 4) backupStack.pop(); 
+            localStorage.setItem('pl_pro_backups', JSON.stringify(backupStack));
+            
+            alert("Sauvegarde locale validée dans le cache sécurisé.");
+            chargerHistoriqueBrouillonsExistants();
+        }
+
+        function chargerHistoriqueBrouillonsExistants() {
+            let collection = JSON.parse(localStorage.getItem('pl_pro_backups')) || [];
+            const target = document.getElementById('draftsCollection');
+            if(collection.length === 0) { target.innerHTML = "Aucune sauvegarde locale détectée pour le moment."; return; }
+            
+            target.innerHTML = collection.map((item, id) => `
+                <div style="background: var(--bg-input); border: 1px solid var(--border-color); padding: 12px; border-radius: 6px; cursor: pointer;" onclick="restaurerContenuBrouillonDepuisCache(${id})">
+                    <span style="color: var(--brand); font-weight: bold; font-size:11px;">Indexation : ${item.horodatage}</span>
+                    <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top:5px; color: var(--text-muted);">${item.content.substring(0, 60)}...</p>
+                </div>
+            `).join('');
+        }
+
+        function restaurerContenuBrouillonDepuisCache(id) {
+            let collection = JSON.parse(localStorage.getItem('pl_pro_backups')) || [];
+            document.getElementById('postEditor').value = collection[id].content;
+            recalculerStatistiquesApplication();
+            switchWorkspaceTab('tab-ia-panel', document.getElementById('wt-ia'));
+        }
+
+        /* ================= INTEGRATION DU SERVICE ASSISTANT IA ================= */
+        async function genererPostIA() {
+            const inputSujet = document.getElementById('aiTopic').value;
+            const selectTone = document.getElementById('aiTone').value;
+            const editeur = document.getElementById('postEditor');
+            
+            if(!inputSujet.trim()) return alert("Veuillez renseigner les lignes directrices du sujet à soumettre à l'IA.");
+
+            editeur.value = "[Requête sécurisée transitant par la passerelle API PostLink... Traitement analytique en cours par le LLM, veuillez patienter...] 🤖";
+            
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic: inputSujet, tone: selectTone })
+                });
+                
+                const fluxRecu = await response.json();
+                editeur.value = fluxRecu.text || "Une anomalie structurelle a été identifiée lors de l'extraction des choix.";
+            } catch (err) {
+                // Simulation intelligente intégrée (Fallback si test hors ligne local)
+                setTimeout(() => {
+                    editeur.value = `💡 PROMPT IA PRO — AXE DE CROCHET\n\nTout le monde fait l'erreur de se focaliser uniquement sur la finalité de : "${inputSujet}". C'est pourtant une erreur stratégique majeure.\n\nEn appliquant un framework rigoureux en 3 étapes, les résultats changent radicalement :\n\n1️⃣ [Insérer ici la méthodologie A]\n2️⃣ [Insérer ici la mesure d'impact B]\n3️⃣ [Insérer ici la leçon apprise]\n\n👉 Quelle est votre approche sur cette thématique ? Partagez vos retours d'expérience sous ce post.\n\n#Performance #DecideurB2B`;
+                    recalculerStatistiquesApplication();
+                }, 1200);
+            }
+            recalculerStatistiquesApplication();
+        }
+
+        function copierPressePapierGlobal() {
+            const cible = document.getElementById('postEditor').value;
+            if(!cible.trim()) return alert("Aucun élément textuel à copier.");
+            navigator.clipboard.writeText(cible);
+            alert("Presse-papier mis à jour. Le texte formaté est prêt à être publié sur LinkedIn.");
+        }
+    </script>
+</body>
+</html>
